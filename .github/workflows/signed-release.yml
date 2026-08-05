@@ -65,10 +65,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release-assets | Out-Null
-          $files = @(
-            (Resolve-Path "cross-platform/target/release/branchly-client.exe").Path
-          ) + @(Get-ChildItem "cross-platform/target/release/bundle" -Recurse -File | Where-Object { $_.Extension -in ".exe", ".msi" } | ForEach-Object { $_.FullName })
-          if ($files.Count -lt 2) { throw "Expected a signed application and at least one Windows installer" }
+          $files = @(Get-ChildItem "cross-platform/target/release/bundle" -Recurse -File | Where-Object { $_.Extension -in ".exe", ".msi" } | ForEach-Object { $_.FullName })
+          if ($files.Count -lt 2) { throw "Expected both signed MSI and NSIS Windows installers" }
           foreach ($file in $files) {
             $signature = Get-AuthenticodeSignature -FilePath $file
             if (-not $signature.SignerCertificate) { throw "Missing Authenticode signature: $file" }
