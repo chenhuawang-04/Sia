@@ -62,7 +62,8 @@
           <button class="tool labeled" id="addSiblingBtn"><b>＋</b> 同级节点 <kbd>Enter</kbd></button>
           <button class="tool labeled" id="editBtn">✎ 编辑</button>
           <button class="tool labeled" id="addAnnotationBtn">注 标注</button>
-          <button class="tool labeled" id="addImageBtn">▧ 图片</button>
+          <button class="tool labeled" id="addImageBtn" title="选择图片，或选中块后按 Ctrl+V 粘贴剪贴板图片">▧ 图片</button>
+          <button class="tool labeled" id="pasteImageBtn" title="把剪贴板图片挂载到当前块（Ctrl+V）">⌘ 粘贴图 <kbd>Ctrl V</kbd></button>
           <button class="tool labeled" id="deleteBtn">⌫ 删除</button>
         </div>
         <span class="divider"></span>
@@ -144,6 +145,7 @@
       <p><span>切换上 / 下同级节点</span><span><kbd>↑</kbd> <kbd>↓</kbd></span></p><p><span>添加下方同级节点</span><kbd>Enter</kbd></p>
       <p><span>编辑节点</span><kbd>F2</kbd></p><p><span>删除节点</span><kbd>Del</kbd></p>
       <p><span>撤销 / 重做</span><span><kbd>Ctrl Z</kbd> <kbd>Ctrl ⇧ Z</kbd></span></p>
+      <p><span>粘贴图片到所选块</span><kbd>Ctrl V</kbd></p>
       <p><span>描述重点语法</span><code>+++重点+++</code></p>
       <p><span>竖直切分</span><span>右侧块接管原孩子</span></p>
       <p><span>水平切分</span><span>新增同父下方块</span></p>
@@ -233,6 +235,7 @@
   <div class="toast" id="toast"></div>
   <input type="file" id="importInput" accept="application/json" hidden>
   <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple hidden>
+  <script src="clipboard-images.js"></script>
   <script src="platform.js"></script>
   <script src="app.js"></script>
 </body>

@@ -13,6 +13,7 @@ const els = {
 
 const COLORS = ['violet', 'blue', 'teal', 'orange'];
 const platform = window.BranchlyPlatform;
+const clipboardImages = window.BranchlyClipboardImages;
 window.addEventListener('branchly-auth-required', () => lockApp('登录状态已失效，请重新输入密码'));
 const RELATIONSHIP_TYPES = Object.freeze({
   'a-to-b': { symbol: '→', color: '#5f76cf', marker: 'blue' },
@@ -30,6 +31,7 @@ let renderedDepth = Infinity, saveTimer = 0, saveStatusTimer = 0, toastTimer = 0
 let history = [], future = [], dragging = null;
 let suppressCanvasClickUntil = 0;
 let galleryNodeId = null, uploadTargetId = null, previewImages = [], previewIndex = 0;
+const pendingImageSlots = new Map();
 let annotationNodeId = null, editingAnnotationId = null;
 let reparentSourceId = null;
 let relationSourceId = null, relationshipDrag = null, relationLongPressTimer = 0, editingRelationshipId = null;
@@ -402,12 +404,13 @@ function makeNode(item) {
   node.annotations = Array.isArray(node.annotations) ? node.annotations : [];
   const el = document.createElement('article');
   el.draggable = false;
-  el.className = `node ${node.color || 'violet'} ${depth === 0 ? 'root' : ''} ${node.id === selectedId ? 'selected' : ''} ${node.collapsed ? 'collapsed' : ''} ${item.h >= 144 ? 'large-block' : ''} ${node.images.length ? 'has-images' : ''} ${node.annotations.length ? 'has-annotations' : ''} ${node.images.length && item.h >= 144 ? 'large-with-images' : ''}`;
+  el.className = `node ${node.color || 'violet'} ${depth === 0 ? 'root' : ''} ${node.id === selectedId ? 'selected' : ''} ${node.collapsed ? 'collapsed' : ''} ${item.h >= 144 ? 'large-block' : ''} ${node.images.length ? 'has-images' : ''} ${node.annotations.length ? 'has-annotations' : ''} ${node.images.length && item.h >= 144 ? 'large-with-images' : ''} ${pendingImageSlots.has(node.id) ? 'image-uploading' : ''}`;
   el.dataset.id = node.id;
   el.dataset.search = nodeSearchText(node);
   el.setAttribute('role', 'treeitem');
   el.setAttribute('aria-level', String(depth + 1));
   el.setAttribute('aria-selected', String(node.id === selectedId));
+  if (pendingImageSlots.has(node.id)) el.setAttribute('aria-busy', 'true');
   if (node.children.length) el.setAttribute('aria-expanded', String(!node.collapsed));
   el.style.transform = `translate(${x}px,${y}px)`;
   el.style.height = `${item.h}px`;
@@ -1218,14 +1221,23 @@ function chooseImages(id = selectedId) {
   els.imageInput.click();
 }
 
-async function uploadImages(files) {
-  const targetId = uploadTargetId || galleryNodeId || selectedId;
-  const found = find(targetId);
-  if (!found || !files.length) return;
-  const validFiles = [...files].filter(file => file.type.startsWith('image/') && file.size <= 12_000_000);
-  if (!validFiles.length) return showToast('请选择不超过 12 MB 的图片文件');
-  const skipped = files.length - validFiles.length;
-  showToast(`正在上传 ${validFiles.length} 张图片…`);
+async function uploadImages(files, explicitTargetId = null, source = 'picker') {
+  const targetId = explicitTargetId || uploadTargetId || galleryNodeId || selectedId;
+  const initialTarget = find(targetId);
+  const candidates = [...files];
+  if (!initialTarget || !candidates.length) return;
+  const alreadyReserved = pendingImageSlots.get(targetId) || 0;
+  const capacity = Math.max(0, 200 - (initialTarget.node.images || []).length - alreadyReserved);
+  const accepted = candidates.filter(file => clipboardImages.isSupportedImage(file) && file.size > 0 && file.size <= 12_000_000);
+  const validFiles = accepted.slice(0, capacity);
+  const skipped = candidates.length - validFiles.length;
+  if (!validFiles.length) {
+    if (!capacity) return showToast('这个块最多挂载 200 张图片');
+    return showToast('仅支持不超过 12 MB 的 JPG、PNG、WebP、GIF 或 AVIF 图片');
+  }
+  pendingImageSlots.set(targetId, alreadyReserved + validFiles.length);
+  render();
+  showToast(source === 'clipboard' ? `正在把 ${validFiles.length} 张剪贴板图片挂载到“${initialTarget.node.text}”…` : `正在上传 ${validFiles.length} 张图片…`);
   const results = new Array(validFiles.length);
   let cursor = 0, failures = 0;
   async function worker() {
@@ -1236,14 +1248,60 @@ async function uploadImages(files) {
       } catch { failures += 1; }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(platform.isNative ? 1 : 3, validFiles.length) }, worker));
+  try {
+    await Promise.all(Array.from({ length: Math.min(platform.isNative ? 1 : 3, validFiles.length) }, worker));
+  } finally {
+    const remaining = (pendingImageSlots.get(targetId) || 0) - validFiles.length;
+    if (remaining > 0) pendingImageSlots.set(targetId, remaining); else pendingImageSlots.delete(targetId);
+  }
   const uploaded = results.filter(Boolean);
-  if (!uploaded.length) return;
+  const currentTarget = find(targetId);
+  if (!currentTarget) {
+    await Promise.allSettled(uploaded.map(image => platform.deleteImage(image.file)));
+    render();
+    return showToast('目标块已不存在，剪贴板图片未挂载');
+  }
+  const attachable = uploaded.slice(0, Math.max(0, 200 - (currentTarget.node.images || []).length));
+  const unused = uploaded.slice(attachable.length);
+  if (unused.length) await Promise.allSettled(unused.map(image => platform.deleteImage(image.file)));
+  if (!attachable.length) { render(); return showToast(failures ? '图片上传失败，请重试' : '这个块最多挂载 200 张图片'); }
   checkpoint();
-  found.node.images = [...(found.node.images || []), ...uploaded];
+  currentTarget.node.images = [...(currentTarget.node.images || []), ...attachable];
   render(); scheduleSave();
   if (els.imageDialog.open || galleryNodeId === targetId) openGallery(targetId);
-  showToast(`已挂载 ${uploaded.length} 张图片${failures + skipped ? `，${failures + skipped} 张未添加` : ''}`);
+  const notAdded = failures + skipped + unused.length;
+  showToast(`${source === 'clipboard' ? '已从剪贴板' : '已'}挂载 ${attachable.length} 张图片${notAdded ? `，${notAdded} 张未添加` : ''}`);
+}
+
+async function pasteClipboardImages(event) {
+  if (!doc || !document.body.classList.contains('auth-ready') || clipboardImages.isEditableTarget(event.target)) return;
+  const openDialog = document.querySelector('dialog[open]');
+  if (openDialog && openDialog !== els.imageDialog) return;
+  if (reparentSourceId || relationSourceId || relationshipDrag) return;
+  const files = platform.clipboardImageFiles(event.clipboardData);
+  if (!files.length) return;
+  const targetId = openDialog === els.imageDialog ? galleryNodeId : selectedId;
+  if (!find(targetId)) return;
+  event.preventDefault();
+  const namedFiles = clipboardImages.giveUsefulNames(files, Date.now());
+  await uploadImages(namedFiles, targetId, 'clipboard');
+}
+
+async function readAndPasteClipboardImages() {
+  const targetId = els.imageDialog.open ? galleryNodeId : selectedId;
+  if (!find(targetId)) return showToast('请先选中要挂载图片的块');
+  const button = $('#pasteImageBtn');
+  button.disabled = true;
+  try {
+    const files = await platform.readClipboardImageFiles();
+    if (!files.length) return showToast('剪贴板里没有可用的图片');
+    await uploadImages(files, targetId, 'clipboard');
+  } catch (error) {
+    const unsupported = error?.code === 'CLIPBOARD_READ_UNSUPPORTED';
+    showToast(unsupported ? '当前环境不支持按钮读取；选中块后直接按 Ctrl+V' : '未能读取剪贴板；请允许剪贴板访问或直接按 Ctrl+V');
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function removeImage(nodeId, imageId) {
@@ -1495,7 +1553,7 @@ function bind() {
   els.title.addEventListener('change', () => { const value = els.title.value.trim() || '未命名思维导图'; checkpoint(); doc.title = value; els.title.value = value; els.sideTitle.textContent = value; scheduleSave(); });
 
   $('#addChildBtn').onclick = () => addChild(); $('#addSiblingBtn').onclick = () => addSibling();
-  $('#editBtn').onclick = () => openEditor(); $('#addAnnotationBtn').onclick = () => openAnnotations(selectedId, true); $('#addImageBtn').onclick = () => chooseImages(); $('#deleteBtn').onclick = () => deleteNode();
+  $('#editBtn').onclick = () => openEditor(); $('#addAnnotationBtn').onclick = () => openAnnotations(selectedId, true); $('#addImageBtn').onclick = () => chooseImages(); $('#pasteImageBtn').onclick = readAndPasteClipboardImages; $('#deleteBtn').onclick = () => deleteNode();
   $('#verticalSplitBtn').onclick = () => splitVertical();
   $('#horizontalSplitBtn').onclick = () => splitHorizontal();
   $('#reparentBtn').onclick = () => startReparent();
@@ -1571,6 +1629,7 @@ function bind() {
     await uploadImages(files);
     uploadTargetId = null;
   });
+  document.addEventListener('paste', pasteClipboardImages);
   $('#menuBtn').onclick = () => $('#sidebar').classList.toggle('open');
   $('#exportBtn').onclick = exportJson;
   $('#importBtn').onclick = () => els.importInput.click();

@@ -5,6 +5,7 @@
 | 嵌套块视图、智能关系边 | `public/app.js`, `public/styles.css` | UI 回归用例与平台截图 |
 | 主题、描述、`+++重点+++` | Web UI + shared model | 文档校验测试、编辑回归 |
 | 图片、数量角标、图库 | UI + native image store | 签名/大小/回收测试 |
+| 选中块粘贴剪贴板图片 | shared ClipboardEvent/Clipboard API + Web/Native platform adapters | 提取、格式、输入区隔离、三端契约测试 |
 | 多条标注 | UI + shared model | 上限与 CRUD 回归 |
 | 竖直/水平切分 | UI | 树结构用例 |
 | 子树重新归属 | UI | 环检测与后代保持用例 |

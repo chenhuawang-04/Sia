@@ -428,7 +428,7 @@ dependencies = [
 
 [[package]]
 name = "branchly-client"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "anyhow",
  "argon2",
@@ -457,7 +457,7 @@ dependencies = [
 
 [[package]]
 name = "branchly-core"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "chrono",
  "serde",
@@ -468,7 +468,7 @@ dependencies = [
 
 [[package]]
 name = "branchly-sync-server"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "anyhow",
  "argon2",

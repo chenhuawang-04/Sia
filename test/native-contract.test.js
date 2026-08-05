@@ -43,3 +43,31 @@ test('cross-platform workspace declares all implementation crates', () => {
     assert.equal(fs.existsSync(path.join(root, 'cross-platform', member, 'Cargo.toml')), true);
   }
 });
+
+test('clipboard image paste is wired through the shared Web, Windows, and Android frontend', () => {
+  const html = read('public/index.html');
+  const platform = read('public/platform.js');
+  const app = read('public/app.js');
+  const clipboardIndex = html.indexOf('<script src="clipboard-images.js"></script>');
+  const platformIndex = html.indexOf('<script src="platform.js"></script>');
+  const appIndex = html.indexOf('<script src="app.js"></script>');
+  assert.ok(clipboardIndex >= 0 && clipboardIndex < platformIndex && platformIndex < appIndex, 'clipboard adapter must load before platform and app');
+  assert.equal((platform.match(/clipboardImageFiles: imageFilesFromClipboard/g) || []).length, 2, 'Web and native adapters must expose paste event images');
+  assert.equal((platform.match(/readClipboardImageFiles,/g) || []).length, 2, 'Web and native adapters must expose explicit clipboard reads');
+  assert.match(app, /document\.addEventListener\('paste', pasteClipboardImages\)/);
+  assert.match(app, /uploadImages\(namedFiles, targetId, 'clipboard'\)/);
+});
+
+test('native workspace, Tauri bundle, tooling manifest, and lockfile versions stay aligned', () => {
+  const workspace = read('cross-platform/Cargo.toml');
+  const version = workspace.match(/\[workspace\.package\][\s\S]*?version = "([^"]+)"/)?.[1];
+  const tauri = JSON.parse(read('cross-platform/apps/client/src-tauri/tauri.conf.json'));
+  const tooling = JSON.parse(read('cross-platform/apps/client/package.json'));
+  const lock = read('cross-platform/Cargo.lock');
+  assert.equal(version, '2.1.0');
+  assert.equal(tauri.version, version);
+  assert.equal(tooling.version, version);
+  for (const crate of ['branchly-client', 'branchly-core', 'branchly-sync-server']) {
+    assert.match(lock, new RegExp(`name = "${crate}"\\nversion = "${version.replaceAll('.', '\\.') }"`));
+  }
+});

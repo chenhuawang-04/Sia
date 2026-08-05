@@ -2,6 +2,15 @@
   'use strict';
   const tauri = global.__TAURI__;
   const native = Boolean(tauri?.core?.invoke);
+  const clipboardImages = global.BranchlyClipboardImages;
+
+  function imageFilesFromClipboard(clipboardData) {
+    return clipboardImages?.fromClipboardData(clipboardData) || [];
+  }
+
+  function readClipboardImageFiles() {
+    return clipboardImages.readSystemClipboard(global.navigator?.clipboard);
+  }
 
   function authenticationError() {
     const error = new Error('Authentication required');
@@ -72,6 +81,8 @@
       return (await webRequest('/api/images', { method: 'POST', headers: { 'Content-Type': file.type, 'X-File-Name': encodeURIComponent(file.name) }, body: file })).json();
     },
     async deleteImage(file) { await webRequest(`/api/images/${encodeURIComponent(file)}`, { method: 'DELETE' }); },
+    clipboardImageFiles: imageFilesFromClipboard,
+    readClipboardImageFiles,
     imageUrl(image) { return image.url; },
     async hydrateDocument(document) { return document; }
   };
@@ -96,6 +107,10 @@
       return image;
     },
     deleteImage: file => invoke('delete_image', { file }),
+    // WebView2 and Android WebView expose the operating-system clipboard through
+    // ClipboardEvent. The resulting File objects reuse the binary IPC path below.
+    clipboardImageFiles: imageFilesFromClipboard,
+    readClipboardImageFiles,
     imageUrl(image) { return image._nativePath ? tauri.core.convertFileSrc(image._nativePath) : image.url; },
     hydrateDocument: hydrateNativeImages,
     cloudLogin: (endpoint, email, password) => invoke('cloud_login', { endpoint, email, password }),

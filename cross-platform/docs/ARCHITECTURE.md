@@ -26,6 +26,9 @@
    现有 Node API，原生适配器调用 Rust command。
 3. SQLite 是客户端本地事实源。云端不可用不阻塞保存、图片查看或任何编辑。
 4. 同步服务不理解画布布局，只管理经过共享核心校验的版本化文档和资源清单。
+5. Web、Windows WebView2 与 Android WebView 共用 `clipboard-images.js` 解析系统粘贴事件；
+   UI 只把提取出的 `File` 交给 `BranchlyPlatform`。Web 通过 Node 图片 API 写入，原生端
+   继续通过限流的二进制 IPC 写入本地图片仓库，不在 JSON 中嵌入图片字节。
 
 ## 可靠性约束
 
@@ -42,7 +45,9 @@
 
 - UI 不引入大型框架，延续当前按可见层级渲染和语义缩放。
 - JSON 文档上限保持 5000 节点、80 层、500 关系；解析和校验在线程池执行。
-- 图片不进入 WebView JS 堆，使用 Tauri asset protocol 直接读取本地文件。
+- 已保存图片不回读进 WebView JS 堆，使用 Tauri asset protocol 直接读取本地文件。
+- 剪贴板图片仅在上传时短暂以 `File`/二进制 IPC 传递；同一原生客户端串行写图，Web
+  最多三并发，并为每个目标块预留容量，避免并发突破 200 张上限。
 - 同步传输启用压缩、ETag 和增量资源清单；图片按哈希去重且并发上限为 2。
 - SQLite 连接数保持很小；前台保存优先于后台同步。
 - Windows 使用单实例插件，第二次启动只唤醒现有窗口，避免两个编辑进程竞争同一本地文档。

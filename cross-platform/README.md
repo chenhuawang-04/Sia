@@ -12,6 +12,8 @@
 - SQLite 使用 WAL、外键、忙等待和完整性检查；JSON 快照与图片采用原子文件替换。
 - 云同步是可选能力。客户端用持久化 outbox、指数退避和条件版本提交，重启不丢任务。
 - 不把图片塞进 JSON 或 SQLite；本地文件按 SHA-256 去重，云端使用对象存储。
+- 选中块后可直接按 `Ctrl+V` 粘贴系统剪贴板图片；Web、Windows 与 Android 共用经过
+  测试的提取逻辑，并分别复用 HTTP 或原生二进制图片存储路径。
 - 不使用 Electron。Tauri 使用系统 WebView，空闲常驻和安装包体积明显更低。
 
 ## 工作区
@@ -26,7 +28,8 @@ cross-platform/
 ```
 
 本机仍不安装 Windows SDK、Android SDK 或额外 Rust 构建环境；构建和平台验证统一由
-GitHub Actions 的真实 Windows/Android 工具链完成。正式签名版本 `v2.0.0` 已发布：
+GitHub Actions 的真实 Windows/Android 工具链完成。当前源码版本为 `2.1.0`；最近一个
+正式签名版本 `v2.0.0` 已发布：
 
 - Release：<https://github.com/chenhuawang-04/Sia/releases/tag/v2.0.0>
 - 签名发布流水线：<https://github.com/chenhuawang-04/Sia/actions/runs/30982988934>
