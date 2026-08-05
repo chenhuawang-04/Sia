@@ -25,8 +25,8 @@ pub fn validate_document(document: &Document) -> Result<(), ValidationError> {
             return invalid("invalid or duplicate relationship id");
         }
         if relationship.source_id == relationship.target_id
-            || !node_ids.contains(&relationship.source_id)
-            || !node_ids.contains(&relationship.target_id) {
+            || !node_ids.contains(relationship.source_id.as_str())
+            || !node_ids.contains(relationship.target_id.as_str()) {
             return invalid("invalid relationship endpoints");
         }
         if text_length(&relationship.topic) > 80 { return invalid("relationship topic is too long"); }
