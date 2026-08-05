@@ -25,5 +25,12 @@ cross-platform/
 └── Cargo.toml                 Rust workspace
 ```
 
-当前阶段按要求只编写和审查源码，不执行构建。准备好 GitHub 仓库后，由 CI 在真实的
-Windows 与 Android 工具链中完成格式、测试、签名构建和安装验证。
+本机仍不安装 Windows SDK、Android SDK 或额外 Rust 构建环境；构建和平台验证统一由
+GitHub Actions 的真实 Windows/Android 工具链完成。正式签名版本 `v2.0.0` 已发布：
+
+- Release：<https://github.com/chenhuawang-04/Sia/releases/tag/v2.0.0>
+- 签名发布流水线：<https://github.com/chenhuawang-04/Sia/actions/runs/30982988934>
+- 完整实现、测试、签名与运行证据见 [`docs/COMPLETION_AUDIT.md`](docs/COMPLETION_AUDIT.md)。
+
+Windows 资产当前使用项目自签名 Authenticode 证书，可验证文件完整性和签名指纹，但不
+具备商业 CA 公共信任链；Android APK 使用项目长期 release keystore 签名。
