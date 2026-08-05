@@ -14,7 +14,7 @@ jobs:
         run: cargo tauri icon src-tauri/icons/branchly.svg
       - name: Build unsigned Windows bundles
         working-directory: cross-platform/apps/client
-        run: cargo tauri build
+        run: cargo tauri build --locked
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-windows-unsigned
@@ -41,7 +41,7 @@ jobs:
         run: |
           cargo tauri icon src-tauri/icons/branchly.svg
           cargo tauri android init
-          cargo tauri android build --apk
+          cargo tauri android build --apk --locked
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-android-unsigned

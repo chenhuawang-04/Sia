@@ -1,8 +1,8 @@
 # 开发与构建准备
 
 当前工作区按要求未在本机执行构建。本机没有 Rust/Cargo、Windows SDK 或 Android SDK。
-因此当前还没有由 Cargo 解析生成的 `Cargo.lock`；GitHub 第一次成功执行质量工作流后必须把
-该锁文件提交进仓库，随后发布构建一律使用 `--locked`，避免依赖版本漂移。
+`Cargo.lock` 由通过质量检查的 GitHub Linux runner 解析生成并提交；质量检查与发布构建
+一律使用 `--locked`，避免不同平台或不同时间解析出不一致的依赖版本。
 
 ## GitHub 仓库准备后
 
@@ -27,21 +27,21 @@ cargo tauri android init
 node --check public/platform.js
 node --check public/app.js
 node --check server.js
-cargo test --manifest-path cross-platform/Cargo.toml --workspace
+cargo test --locked --manifest-path cross-platform/Cargo.toml --workspace
 ```
 
 Windows 构建：
 
 ```powershell
 cd cross-platform/apps/client
-cargo tauri build
+cargo tauri build --locked
 ```
 
 Android 构建：
 
 ```bash
 cd cross-platform/apps/client
-cargo tauri android build --apk
+cargo tauri android build --apk --locked
 ```
 
 发布构建不得把同步地址、JWT secret、签名密码或对象存储密钥写进仓库。Android keystore
