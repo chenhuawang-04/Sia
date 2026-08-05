@@ -4,6 +4,7 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -21,12 +22,28 @@ jobs:
       - name: Build unsigned Windows bundles
         working-directory: cross-platform/apps/client
         run: npx tauri build
+      - name: Smoke-launch Windows application
+        shell: pwsh
+        run: |
+          $executable = Resolve-Path "cross-platform/target/release/branchly-client.exe"
+          $process = Start-Process -FilePath $executable -PassThru
+          try {
+            Start-Sleep -Seconds 12
+            if ($process.HasExited) {
+              throw "Branchly exited during the Windows startup smoke test with code $($process.ExitCode)"
+            }
+          } finally {
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+            }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-windows-unsigned
           path: cross-platform/target/release/bundle/**
   android:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -53,6 +70,21 @@ jobs:
           npx tauri android init
           cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
           npx tauri android build --apk
+      - name: Install and launch APK on Android 9 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            apk_path=$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -1)
+            test -n "$apk_path"
+            aapt dump badging "$apk_path" | grep -F "package: name='io.branchly.mindmap'"
+            adb install -r "$apk_path"
+            adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
+            sleep 12
+            test -n "$(adb shell pidof io.branchly.mindmap | tr -d '\r')"
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-android-unsigned
