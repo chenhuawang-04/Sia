@@ -74,6 +74,16 @@ jobs:
         with:
           name: branchly-android-unsigned
           path: cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+
+  android-smoke:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: branchly-android-unsigned
+          path: artifacts/android
       - name: Install and launch APK on Android 9 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -82,9 +92,9 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            test -n "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
-            aapt dump badging "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)" | grep -F "package: name='io.branchly.mindmap'"
-            adb install -r "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+            test -n "$(find artifacts/android -type f -name '*.apk' -print -quit)"
+            "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$(find artifacts/android -type f -name '*.apk' -print -quit)" | grep -F "package: name='io.branchly.mindmap'"
+            adb install -r "$(find artifacts/android -type f -name '*.apk' -print -quit)"
             adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
             sleep 12
             test -n "$(adb shell pidof io.branchly.mindmap | tr -d '\r')"
