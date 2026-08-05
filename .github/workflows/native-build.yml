@@ -11,7 +11,7 @@ jobs:
         run: cargo install tauri-cli --version "^2" --locked
       - name: Generate platform icon set
         working-directory: cross-platform/apps/client
-        run: cargo tauri icon src-tauri/icons/branchly.svg
+        run: cargo tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
       - name: Build unsigned Windows bundles
         working-directory: cross-platform/apps/client
         run: cargo tauri build -- --locked
@@ -39,7 +39,7 @@ jobs:
       - name: Initialize and build unsigned Android APK
         working-directory: cross-platform/apps/client
         run: |
-          cargo tauri icon src-tauri/icons/branchly.svg
+          cargo tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
           cargo tauri android init
           cargo tauri android build --apk -- --locked
       - uses: actions/upload-artifact@v4
