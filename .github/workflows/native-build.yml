@@ -15,9 +15,11 @@ jobs:
       - name: Generate platform icon set
         working-directory: cross-platform/apps/client
         run: tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
+      - name: Verify locked Rust dependency graph
+        run: cargo metadata --locked --manifest-path cross-platform/Cargo.toml --no-deps
       - name: Build unsigned Windows bundles
         working-directory: cross-platform/apps/client
-        run: tauri build -- --locked
+        run: tauri build
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-windows-unsigned
@@ -47,7 +49,8 @@ jobs:
         run: |
           tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
           tauri android init
-          tauri android build --apk -- --locked
+          cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
+          tauri android build --apk
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-android-unsigned

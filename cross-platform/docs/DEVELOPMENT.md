@@ -37,14 +37,16 @@ Windows 构建：
 
 ```powershell
 cd cross-platform/apps/client
-cargo tauri build -- --locked
+cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
+cargo tauri build
 ```
 
 Android 构建：
 
 ```bash
 cd cross-platform/apps/client
-cargo tauri android build --apk -- --locked
+cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
+cargo tauri android build --apk
 ```
 
 发布构建不得把同步地址、JWT secret、签名密码或对象存储密钥写进仓库。Android keystore
