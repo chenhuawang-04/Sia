@@ -34,14 +34,14 @@ Windows 构建：
 
 ```powershell
 cd cross-platform/apps/client
-cargo tauri build --locked
+cargo tauri build -- --locked
 ```
 
 Android 构建：
 
 ```bash
 cd cross-platform/apps/client
-cargo tauri android build --apk --locked
+cargo tauri android build --apk -- --locked
 ```
 
 发布构建不得把同步地址、JWT secret、签名密码或对象存储密钥写进仓库。Android keystore
