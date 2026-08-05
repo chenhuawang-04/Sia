@@ -1,54 +1,106 @@
-# 开发完成度审计
+# 开发与正式发布完成度审计
 
-审计日期：2026-08-05。这里把“源码已实现”和“已在目标平台构建验证”分开记录，避免
-用静态检查冒充 Windows/Android 运行证据。
+审计日期：2026-08-05。本文件把源码实现、自动化测试、目标平台运行证据和公开发布证据
+分开记录，不以静态检查代替签名、安装或运行验证。
+
+## 结论
+
+Branchly `v2.0.0` 已作为非草稿、非预发布的正式 GitHub Release 公开发布：
+
+- Release：<https://github.com/chenhuawang-04/Sia/releases/tag/v2.0.0>
+- 签名发布流水线：<https://github.com/chenhuawang-04/Sia/actions/runs/30982988934>
+- 发布提交：`40e1c9f86a81e027047ace1add7cb68342f49a62`
+- 流水线结论：`windows-release`、`android-release`、`android-release-smoke`、
+  `publish` 四个 job 全部成功。
+
+Android APK 使用项目长期 release keystore 签名，并在 Android 9/API 28 模拟器完成验签、
+安装、Launcher 启动和启动 12 秒后的进程存活检查。Windows MSI 与 NSIS 安装包使用
+Authenticode 签名并核对发布证书指纹；Windows 应用完成 12 秒启动存活检查。
+
+Windows 当前使用项目自签名代码签名证书，签名本身真实且可验证，但不具备商业 CA 公共
+信任链，Windows SmartScreen 仍可能显示“未知发布者”或信誉警告。不得将其描述为商业
+CA 签名。公开 `.cer` 只包含公钥，不包含私钥。
+
+## 功能与架构审计
 
 | 明确要求 | 权威实现证据 | 当前结论 |
 |---|---|---|
-| Windows + Android | Tauri 2 配置、共享 UI、Android minSdk 28、GitHub 原生构建 | 同一提交已成功生成 Windows bundles 与 Android unsigned APK；真机交互仍待设备验收 |
-| 与当前项目功能一致 | `public/app.js` 原样承载块、关系、标注、图片、切分、重归属、搜索、撤销等；`platform.js` 只替换存储边界 | 已实现；Web 基线在 7860 实际运行 |
-| 低占用 | 系统 WebView 而非 Electron；二进制图片 IPC；单并发图片；复用 HTTP 连接池；SQLite/图片分离 | 已实现；数值基准等待目标设备 |
-| 本地自动持久化 | SQLite WAL/FULL 事务、450ms 合并保存、隐藏前强制刷新、最多每 5 秒物理备份 | 已实现；Rust 原生存储/恢复测试已在 GitHub Linux runner 通过 |
-| 损坏恢复 | quick_check、损坏现场保留、最新/上一物理备份三级恢复、30 个事务前快照、恢复 UI | 已实现 |
-| 图片可靠性 | 实际签名、大小限制、原子写入、SHA-256、回收站七天、首次资源迁移 | 已实现 |
-| 云同步 | HTTPS、PostgreSQL CAS、持久化 outbox、幂等 operation、指数退避、资源对象存储 | 已实现 |
-| 多设备冲突 | 保存 local/remote 双副本、重基、用户选择保留本机或采用云端、采用前再次快照 | 已实现 |
-| 云账户安全 | Argon2id、账户限流、JWT 15 分钟、刷新令牌轮换/撤销、token version | 已实现 |
+| Windows + Android | Tauri 2、共享 UI、Android minSdk 28、正式签名构建 | Windows MSI/NSIS 与 Android signed APK 已发布 |
+| 与原项目功能一致 | `public/app.js` 承载块视图、关系、标注、图片、切分、重归属、搜索、撤销等；`platform.js` 替换存储边界 | 已实现；Web 基线仍在 7860 运行 |
+| 低占用 | 系统 WebView、二进制图片 IPC、单并发图片、HTTP 连接池、SQLite/图片分离 | 已实现；数值性能基准仍需目标真机测量 |
+| 本地自动持久化 | SQLite WAL/FULL 事务、450ms 合并保存、隐藏前强制刷新、最多每 5 秒物理备份 | 已实现并通过 Rust 原生测试 |
+| 损坏恢复 | `quick_check`、损坏现场保留、最新/上一物理备份三级恢复、30 个事务前快照、恢复 UI | 已实现 |
+| 图片可靠性 | 文件签名、大小限制、原子写入、SHA-256、七天回收站、首次资源迁移 | 已实现 |
+| 云同步 | HTTPS、PostgreSQL CAS、持久化 outbox、幂等 operation、指数退避、资源对象存储 | 已实现并通过真实 PostgreSQL HTTP 端到端测试 |
+| 多设备冲突 | 保存 local/remote 双副本、重基、用户选择本机或云端、采用前再次快照 | 已实现；CAS 冲突路径已通过端到端测试 |
+| 云账户安全 | Argon2id、账户限流、JWT 15 分钟、刷新令牌原子轮换/撤销、token version | 已实现；重复注册、错误登录、旧 refresh token 重用等已测试 |
 | 本地凭据安全 | Argon2id 设备盐派生、XChaCha20-Poly1305、双文件原子轮换、锁定时密钥清零 | 已实现 |
-| 高可用云服务 | 无状态 Axum 副本、PostgreSQL 行锁、S3 兼容存储、健康探针、优雅关闭、维护任务 | 已实现；集群演练等待部署环境 |
-| 导入/导出 | 原 JSON 导入保留；原生导出到系统文档目录并原子命名 | 已实现 |
-| 可维护架构 | 共享 `branchly-core`、平台适配器、客户端/服务端边界、SQL migrations、文档和 CI | 已实现 |
-| 不在本机构建 | 本机没有 Cargo/Rust/Windows SDK/Android SDK；未安装或模拟构建 | 已遵守 |
+| 高可用云服务 | 无状态 Axum 副本、PostgreSQL 行锁、S3 兼容存储、健康探针、优雅关闭、维护任务 | 已实现；多副本故障演练仍需生产部署环境 |
+| 导入/导出 | 原 JSON 导入；原生导出到系统文档目录并原子命名 | 已实现 |
+| 可维护架构 | 共享 `branchly-core`、平台适配器、客户端/服务端边界、SQL migrations、固定 `Cargo.lock`、文档和 CI | 已实现 |
 
-## 本机已取得的直接证据
+## 正式发布资产
+
+| 资产 | 字节数 | SHA-256 |
+|---|---:|---|
+| `Branchly-v2.0.0-android.apk` | 66,877,274 | `48ad73528281b818c417e46cbec6bc4a660897016bfedd7aac575bd6c007f815` |
+| `Branchly_2.0.0_x64-setup.exe` | 5,504,640 | `38c7288eedeef1a8ecc5037829a4a83735ac13452b186041999cd3ad91dc7ba2` |
+| `Branchly_2.0.0_x64_en-US.msi` | 7,016,448 | `652f7306a344f82655f21ae12a87cf705b2dc5e319ffb64273cd5c4ada97c76f` |
+| `Branchly-self-signed-release.cer` | 1,470 | `aa403e9763ff708185838e4acbe7caab589b8d40c11f8af2930e19777d3fcfa4` |
+| `SHA256SUMS.txt` | 383 | 包含上述四项发布资产的校验值 |
+
+资产大小取自 GitHub Release API，哈希由发布 job 在合并后的签名 artifact 上生成并随
+Release 发布。服务器本地独立下载副本位于被 `.gitignore` 排除的 `releases/v2.0.0/`，
+完整下载后使用 `sha256sum -c SHA256SUMS.txt` 再次复核。
+
+## 签名与运行证据
+
+### Android
+
+- 签名证书主题：`CN=Branchly Release, O=Branchly, OU=Software, C=CN`
+- 证书 SHA-256：`e6114df0e05e8f26b21e5e9744f23f34305ec42ba4ab239f416b06e4d06d3c32`
+- 公钥：RSA 4096 bit。
+- `apksigner verify --verbose --print-certs`：`Verifies`，1 个 signer，APK Signature
+  Scheme v3 验证成功。
+- Android 9/API 28 x86_64 模拟器：`adb install -r` 返回 `Success`；Launcher 事件注入
+  成功；等待 12 秒后 `pidof io.branchly.mindmap` 非空。
+
+### Windows
+
+- Authenticode 证书指纹：`7CA10CA87728B49B9FC94BC0FF361BB3B57FF00D`。
+- 摘要算法：SHA-256；时间戳服务：`http://timestamp.digicert.com`。
+- Tauri/SignTool 分别报告 MSI、NSIS installer 和应用 EXE `Successfully signed`。
+- 发布前以 PowerShell `Get-AuthenticodeSignature` 核对 MSI/NSIS 均存在 signer，且 signer
+  指纹与导入的 release 证书一致；不一致会直接使流水线失败。
+- Windows runner 启动应用后等待 12 秒，进程未提前退出，冒烟测试成功。
+- 限制：证书是自签名证书，不能提供商业 CA 的系统默认信任或 SmartScreen 信誉。
+
+## 自动化质量与云端端到端证据
+
+- Quality run `30977709549`：成功：
+  <https://github.com/chenhuawang-04/Sia/actions/runs/30977709549>。
+- `web-and-rust` job `92215195050` 与 `native-client-tests` job `92215195091` 均通过。
+- 云同步测试使用真实 PostgreSQL 17 service、真实 Axum HTTP server 和本地对象存储，覆盖
+  readiness/liveness、注册/登录、refresh token 原子轮换、旧 token 禁止重用、图片哈希、
+  用户隔离、文档隔离、首次推送、operation 幂等、拉取、CAS 冲突、revision 更新和退出撤销。
+- Native Builds run `30976343398` 同时成功生成 Windows 与 Android 原生构建，随后正式
+  Signed Release run `30982988934` 重新执行优化 release 构建、签名和平台运行门禁。
+- Rust 依赖固定在提交的 `Cargo.lock`；CI 以 `--locked`/`cargo metadata --locked` 检查
+  构建依赖图。
+
+## 本机直接证据
 
 - `node --check public/platform.js public/app.js server.js`：通过。
-- `npm test`：8/8 通过，覆盖真实当前文档、服务端安全校验、DOM/IPC 契约和资源路径。
+- `npm test`：8/8 通过，覆盖当前文档、服务端安全校验、DOM/IPC 契约和资源路径。
 - 7860：密码登录、导图读取、静态资源一致性和监听状态已验证。
-- 当前真实文档：23 个块、2 条独立关系、1 张被引用图片，测试未改写内容。
-- 已下载并检查 Android unsigned APK：70,977,991 字节，ZIP/APK 结构测试无错误，
-  SHA-256 `4088037a3193330cbf2bff9cb6a13fadd7ab76b3b712611a0fe502d3cc29381d`。
+- 当前真实文档：23 个块、2 条独立关系、1 张被引用图片；测试未改写内容。
 
-## GitHub 已取得的直接证据
+## 仍需线下/生产环境验收的边界
 
-- 最终提交：`d34e43262a77918fd4525e345e9cbf7203d9b8ed`。
-- Quality run `30976288930`：成功；`web-and-rust` 与 `native-client-tests` 均通过。
-- Native Builds run `30976343398`：成功；Windows job `92211010499` 用时 8m25s，
-  Android job `92211010502` 用时 13m55s。
-- `branchly-windows-unsigned` artifact：ID `8918527632`，12,222,765 字节，未过期。
-- `branchly-android-unsigned` artifact：ID `8918633450`，24,917,586 字节（artifact ZIP），未过期。
-- 最终 run 页面：<https://github.com/chenhuawang-04/Sia/actions/runs/30976343398>。
-- Rust 依赖已提交 `Cargo.lock`；质量检查先以 `--locked` 测试，平台工作流在打包前以
-  `cargo metadata --locked` 验证依赖图，然后由 Tauri 使用同一工作区锁文件构建。
+以下事项不阻碍 `v2.0.0` 作为签名正式版本发布，但不能用 CI 模拟器或启动冒烟替代：
 
-## 发布前仍需取得的证据
-
-以下内容依赖真实部署环境、目标设备或正式签名材料，不能用 CI 编译成功替代：
-
-1. Windows 10/11 真机安装、启动、WebView2 交互和性能预算。
-2. Android 9 与当前 Android 版本真机安装、触控、返回键、文件选择和后台恢复。
-3. PostgreSQL + 对象存储的双设备离线、重试、冲突和灾难恢复集成测试。
-4. 注入正式签名后生成可公开分发的 Windows installer 与 Android release artifact。
-
-当前可以称为“源码、自动化质量检查和 unsigned 跨平台构建完成”；在上述设备/部署证据
-与正式签名出现前，不能称为“已公开发布”或“已通过完整跨平台真机验收”。
+1. Windows 10/11 实体设备上的完整安装/卸载、WebView2 交互、SmartScreen 呈现和性能预算。
+2. Android 实体设备上的触控、系统返回键、文件选择、后台恢复和厂商 ROM 兼容性。
+3. 生产多副本 PostgreSQL/S3 环境的故障切换、对象存储灾难恢复和长期压力测试。
+4. 若要求 Windows 默认公共信任与更少 SmartScreen 警告，需要另行购买/接入受信任商业
+   代码签名证书，再生成后续 release；当前版本不冒充具备该信任链。
