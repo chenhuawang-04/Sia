@@ -84,6 +84,10 @@ jobs:
         with:
           name: branchly-android-unsigned
           path: artifacts/android
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
       - name: Install and launch APK on Android 9 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -94,6 +98,9 @@ jobs:
           script: |
             test -n "$(find artifacts/android -type f -name '*.apk' -print -quit)"
             "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging "$(find artifacts/android -type f -name '*.apk' -print -quit)" | grep -F "package: name='io.branchly.mindmap'"
+            keytool -genkeypair -keystore /tmp/branchly-ci-debug.keystore -storepass android -keypass android -alias branchly-ci -dname "CN=Branchly CI,O=Branchly,C=CN" -keyalg RSA -validity 1
+            "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign --ks /tmp/branchly-ci-debug.keystore --ks-pass pass:android --key-pass pass:android --ks-key-alias branchly-ci "$(find artifacts/android -type f -name '*.apk' -print -quit)"
+            "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify "$(find artifacts/android -type f -name '*.apk' -print -quit)"
             adb install -r "$(find artifacts/android -type f -name '*.apk' -print -quit)"
             adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
             sleep 12
