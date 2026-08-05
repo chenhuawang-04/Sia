@@ -70,6 +70,10 @@ jobs:
           npx tauri android init
           cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
           npx tauri android build --apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: branchly-android-unsigned
+          path: cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
       - name: Install and launch APK on Android 9 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -78,14 +82,9 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            apk_path=$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -1)
-            test -n "$apk_path"
-            aapt dump badging "$apk_path" | grep -F "package: name='io.branchly.mindmap'"
-            adb install -r "$apk_path"
+            test -n "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+            aapt dump badging "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)" | grep -F "package: name='io.branchly.mindmap'"
+            adb install -r "$(find cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' -print -quit)"
             adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
             sleep 12
             test -n "$(adb shell pidof io.branchly.mindmap | tr -d '\r')"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: branchly-android-unsigned
-          path: cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
