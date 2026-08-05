@@ -21,6 +21,34 @@ Windows 当前使用项目自签名代码签名证书，签名本身真实且可
 信任链，Windows SmartScreen 仍可能显示“未知发布者”或信誉警告。不得将其描述为商业
 CA 签名。公开 `.cer` 只包含公钥，不包含私钥。
 
+## `2.1.0` 后续功能与三端验证
+
+当前 `main` 源码版本已提升为 `2.1.0`，加入“选中块后粘贴剪贴板图片”。这一版本尚未
+创建新的正式签名 GitHub Release；下列证据针对当前源码和 CI artifacts，最近正式公开
+版本仍是上文记录的 `v2.0.0`。
+
+- 权威提交：`02e85fcdee72c683f9601f5328c61c95526063ce`。
+- Web：`clipboard-images.js` 从 `ClipboardEvent.clipboardData` 提取图片；工具栏按钮还可在
+  用户手势中调用 Clipboard API。文本框、文本域和 contenteditable 保持普通粘贴行为。
+- Windows/Android：同一前端经 `BranchlyPlatform` Native adapter 接收 WebView 系统剪贴板
+  图片，并复用已有二进制 Tauri IPC、本地原子图片仓库和 SQLite 文档保存路径。
+- 交互可靠性：上传期间按目标块预留容量；同一块不会并发突破 200 张；目标块中途删除时
+  自动清理未挂载文件；只接受不超过 12 MB 的 JPG/PNG/WebP/GIF/AVIF。
+- 7860 实际服务：密码登录、首页、剪贴板模块、平台适配器和应用脚本均返回 HTTP 200，
+  三个脚本加载顺序及粘贴监听已核对。
+- Quality run `31021445821`：成功：
+  <https://github.com/chenhuawang-04/Sia/actions/runs/31021445821>。
+- Native Builds run `31021476021`：Windows、Android、Android 9 smoke 全部成功：
+  <https://github.com/chenhuawang-04/Sia/actions/runs/31021476021>。
+- Windows artifact `branchly-windows-unsigned`：ID `8937121583`，12,230,537 字节；构建后
+  实际启动并保持 12 秒。
+- Android artifact `branchly-android-unsigned`：ID `8937260366`，24,932,735 字节；APK
+  badging 为 `versionName='2.1.0'`、`versionCode='2001000'`，包名为
+  `io.branchly.mindmap`。
+- Android 9/API 28：临时 CI key 签名副本通过 `apksigner verify`；runner 的流式安装超时
+  后，门禁按设计重启 ADB 并切换非流式安装，返回 `Success`；Launcher 注入成功，等待
+  12 秒后进程仍存活。该临时签名只用于安装门禁，不冒充正式 release key。
+
 ## 功能与架构审计
 
 | 明确要求 | 权威实现证据 | 当前结论 |
@@ -90,10 +118,12 @@ Release 发布。服务器本地独立下载副本位于被 `.gitignore` 排除�
 
 ## 本机直接证据
 
-- `node --check public/platform.js public/app.js server.js`：通过。
-- `npm test`：8/8 通过，覆盖当前文档、服务端安全校验、DOM/IPC 契约和资源路径。
+- `node --check public/clipboard-images.js public/platform.js public/app.js server.js`：通过。
+- `npm test`：19/19 通过，覆盖剪贴板提取/格式/命名/输入区隔离/显式读取、三端适配契约、
+  版本一致性、当前文档、服务端安全校验、DOM/IPC 契约和资源路径。
 - 7860：密码登录、导图读取、静态资源一致性和监听状态已验证。
-- 当前真实文档：23 个块、2 条独立关系、1 张被引用图片；测试未改写内容。
+- 2026-08-05 本轮核验时真实文档：48 个块、8 条独立关系、6 张被引用图片；测试未改写
+  内容，用户在开发期间新增的数据文件也未混入源码提交。
 
 ## 仍需线下/生产环境验收的边界
 
