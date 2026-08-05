@@ -32,6 +32,13 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "category": "Productivity",
     "shortDescription": "本地优先的块视图思维导图",
     "longDescription": "低占用、可离线、支持云同步的块视图思维导图软件。",

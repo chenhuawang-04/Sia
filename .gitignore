@@ -1,5 +1,6 @@
 target/
 backups/
+releases/
 cross-platform/apps/client/src-tauri/gen/
 cross-platform/services/sync-server/.env
 cross-platform/services/sync-server/data/

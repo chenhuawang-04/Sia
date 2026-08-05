@@ -23,10 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Tauri system libraries
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev librsvg2-bin patchelf
-      - name: Generate test application icon
-        run: rsvg-convert --width 512 --height 512 cross-platform/apps/client/src-tauri/icons/branchly.svg --output cross-platform/apps/client/src-tauri/icons/icon.png
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Generate test application icon set
+        working-directory: cross-platform/apps/client
+        run: |
+          npm install --no-save @tauri-apps/cli@2.11.4
+          npx tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
       - name: Native storage and security tests
         run: cargo test --locked --manifest-path cross-platform/Cargo.toml -p branchly-client --lib
