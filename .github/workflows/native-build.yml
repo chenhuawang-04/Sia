@@ -78,7 +78,7 @@ jobs:
   android-smoke:
     needs: android
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -101,7 +101,14 @@ jobs:
             keytool -genkeypair -keystore /tmp/branchly-ci-debug.keystore -storepass android -keypass android -alias branchly-ci -dname "CN=Branchly CI,O=Branchly,C=CN" -keyalg RSA -validity 1
             "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign --ks /tmp/branchly-ci-debug.keystore --ks-pass pass:android --key-pass pass:android --ks-key-alias branchly-ci "$(find artifacts/android -type f -name '*.apk' -print -quit)"
             "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify "$(find artifacts/android -type f -name '*.apk' -print -quit)"
-            adb install -r "$(find artifacts/android -type f -name '*.apk' -print -quit)"
+            apk="$(find artifacts/android -type f -name '*.apk' -print -quit)"
+            if ! timeout 240 adb install -r "$apk"; then
+              echo "Streamed APK install stalled; restarting ADB and retrying without streaming"
+              adb kill-server || true
+              adb start-server
+              timeout 90 adb wait-for-device
+              timeout 360 adb install --no-streaming -r "$apk"
+            fi
             adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
             sleep 12
             test -n "$(adb shell pidof io.branchly.mindmap | tr -d '\r')"

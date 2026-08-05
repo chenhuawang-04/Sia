@@ -148,7 +148,7 @@ jobs:
   android-release-smoke:
     needs: android-release
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -168,7 +168,14 @@ jobs:
           script: |
             test -n "$(find release-assets -type f -name '*.apk' -print -quit)"
             "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify "$(find release-assets -type f -name '*.apk' -print -quit)"
-            adb install -r "$(find release-assets -type f -name '*.apk' -print -quit)"
+            apk="$(find release-assets -type f -name '*.apk' -print -quit)"
+            if ! timeout 240 adb install -r "$apk"; then
+              echo "Streamed APK install stalled; restarting ADB and retrying without streaming"
+              adb kill-server || true
+              adb start-server
+              timeout 90 adb wait-for-device
+              timeout 360 adb install --no-streaming -r "$apk"
+            fi
             adb shell monkey -p io.branchly.mindmap -c android.intent.category.LAUNCHER 1
             sleep 12
             test -n "$(adb shell pidof io.branchly.mindmap | tr -d '\r')"
