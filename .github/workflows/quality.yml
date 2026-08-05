@@ -5,6 +5,20 @@ on:
 jobs:
   web-and-rust:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: branchly
+          POSTGRES_PASSWORD: branchly-ci-password
+          POSTGRES_DB: branchly_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U branchly -d branchly_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -19,6 +33,22 @@ jobs:
           npm test
       - name: Shared core and sync service tests
         run: cargo test --locked --manifest-path cross-platform/Cargo.toml -p branchly-core -p branchly-sync-server
+      - name: Cloud authentication and sync end-to-end test
+        env:
+          DATABASE_URL: postgres://branchly:branchly-ci-password@127.0.0.1:5432/branchly_test
+          JWT_SECRET: branchly-ci-only-secret-with-at-least-32-bytes
+          BRANCHLY_BIND: 127.0.0.1:18080
+          OBJECT_STORE: local
+          OBJECT_STORE_PATH: /tmp/branchly-e2e-objects
+          BRANCHLY_E2E_ENDPOINT: http://127.0.0.1:18080
+        run: |
+          cargo run --locked --manifest-path cross-platform/Cargo.toml -p branchly-sync-server > /tmp/branchly-sync-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          if ! node cross-platform/services/sync-server/tests/cloud_e2e.mjs; then
+            tail -200 /tmp/branchly-sync-server.log
+            exit 1
+          fi
   native-client-tests:
     runs-on: ubuntu-latest
     steps:
