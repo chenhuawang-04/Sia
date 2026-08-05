@@ -1,0 +1,9 @@
+{
+  "name": "branchly-native-client",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Pinned tooling manifest for Branchly native platform builds.",
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4"
+  }
+}

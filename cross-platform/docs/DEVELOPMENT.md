@@ -13,8 +13,9 @@
 - Windows：Microsoft WebView2、Visual Studio Build Tools 2022（C++ workload）
 - Android：JDK 17、Android SDK 35、NDK 27、Rust Android targets
 
-GitHub 原生构建固定使用预编译的 `@tauri-apps/cli@2.11.4`，避免每次 runner 都从源码编译
-Tauri CLI；应用自身的 Rust 依赖仍严格按工作区 `Cargo.lock` 构建。
+GitHub 原生构建在客户端目录固定安装预编译的 `@tauri-apps/cli@2.11.4` 并通过 `npx`
+调用，避免每次 runner 都从源码编译 Tauri CLI，同时让 Android Gradle 任务能够解析稳定的
+本地 CLI 路径；应用自身的 Rust 依赖仍严格按工作区 `Cargo.lock` 构建。
 
 首次生成 Android 工程：
 

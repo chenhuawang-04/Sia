@@ -11,15 +11,16 @@ jobs:
           node-version: 24
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Tauri CLI
-        run: npm install --global @tauri-apps/cli@2.11.4
+        working-directory: cross-platform/apps/client
+        run: npm install --no-save @tauri-apps/cli@2.11.4
       - name: Generate platform icon set
         working-directory: cross-platform/apps/client
-        run: tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
+        run: npx tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
       - name: Verify locked Rust dependency graph
         run: cargo metadata --locked --manifest-path cross-platform/Cargo.toml --no-deps
       - name: Build unsigned Windows bundles
         working-directory: cross-platform/apps/client
-        run: tauri build
+        run: npx tauri build
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-windows-unsigned
@@ -43,14 +44,15 @@ jobs:
         run: |
           sdkmanager "ndk;27.0.12077973"
           echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
-          npm install --global @tauri-apps/cli@2.11.4
+          cd cross-platform/apps/client
+          npm install --no-save @tauri-apps/cli@2.11.4
       - name: Initialize and build unsigned Android APK
         working-directory: cross-platform/apps/client
         run: |
-          tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
-          tauri android init
+          npx tauri icon src-tauri/icons/branchly.svg --output src-tauri/icons
+          npx tauri android init
           cargo metadata --locked --manifest-path ../../Cargo.toml --no-deps
-          tauri android build --apk
+          npx tauri android build --apk
       - uses: actions/upload-artifact@v4
         with:
           name: branchly-android-unsigned
