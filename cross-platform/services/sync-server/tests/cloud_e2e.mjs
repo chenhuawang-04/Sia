@@ -121,7 +121,7 @@ assert.equal(applied.status, "applied");
 assert.equal(applied.revision, 1);
 
 const idempotent = await expectStatus("/v1/documents/main", { method: "PUT", token: aliceRotated.accessToken, body: envelope }, 200);
-assert.equal(idempotent.status, "already-applied");
+assert.equal(idempotent.status, "alreadyApplied");
 assert.equal(idempotent.revision, 1);
 
 const pulled = await expectStatus("/v1/documents/main", { token: aliceRotated.accessToken }, 200);
