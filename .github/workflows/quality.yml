@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Tauri system libraries
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev librsvg2-bin patchelf
+      - name: Generate test application icon
+        run: rsvg-convert --width 512 --height 512 cross-platform/apps/client/src-tauri/icons/branchly.svg --output cross-platform/apps/client/src-tauri/icons/icon.png
       - name: Native storage and security tests
         run: cargo test --manifest-path cross-platform/Cargo.toml -p branchly-client --lib

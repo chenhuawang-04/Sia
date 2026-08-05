@@ -84,7 +84,7 @@ pub async fn run_once(state: &AppState) -> anyhow::Result<SyncOutcome> {
     upload_pending_assets(state, &endpoint, &token).await?;
     if let Some(job) = job { return push(state, &endpoint, &token, &device_id, job).await; }
     let response = state.http.get(format!("{endpoint}/v1/documents/{DEFAULT_DOCUMENT_ID}"))
-        .bearer_auth(token).send().await?;
+        .bearer_auth(&token).send().await?;
     if response.status() == reqwest::StatusCode::NOT_FOUND {
         state.database.lock().queue_current_for_sync()?;
         return Ok(SyncOutcome { state: "queued", revision: None, changed_local_document: false });
@@ -195,7 +195,7 @@ fn collect_asset_hashes(document: &branchly_core::Document) -> Vec<String> {
 
 fn validate_remote(remote: &RemoteDocument) -> anyhow::Result<()> {
     branchly_core::validate_document(&remote.document)?;
-    let mut referenced = collect_asset_hashes(&remote.document);
+    let referenced = collect_asset_hashes(&remote.document);
     let mut declared = remote.asset_hashes.clone(); declared.sort(); declared.dedup();
     anyhow::ensure!(referenced == declared, "remote asset manifest does not match document");
     fn all_hashed(node: &branchly_core::Node) -> bool {
