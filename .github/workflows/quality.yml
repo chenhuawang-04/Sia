@@ -1,0 +1,30 @@
+name: Quality
+on:
+  push:
+  pull_request:
+jobs:
+  web-and-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+      - name: JavaScript syntax and tests
+        run: |
+          node --check public/platform.js
+          node --check public/app.js
+          node --check server.js
+          npm test
+      - name: Shared core and sync service tests
+        run: cargo test --manifest-path cross-platform/Cargo.toml -p branchly-core -p branchly-sync-server
+  native-client-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Tauri system libraries
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Native storage and security tests
+        run: cargo test --manifest-path cross-platform/Cargo.toml -p branchly-client --lib

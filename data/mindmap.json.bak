@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "title": "未命名思维导图",
+  "createdAt": "2026-08-04T14:17:27.894Z",
+  "root": {
+    "id": "node-mseqsms7-jtz56",
+    "text": "计算机网络",
+    "note": "",
+    "color": "violet",
+    "collapsed": false,
+    "images": [],
+    "children": [
+      {
+        "id": "node-mseqt7o6-4q09c",
+        "text": "分层模型",
+        "note": "",
+        "color": "violet",
+        "collapsed": false,
+        "images": [],
+        "children": [
+          {
+            "id": "node-msereu5i-les44",
+            "text": "OSI参考模型",
+            "note": "",
+            "color": "violet",
+            "collapsed": false,
+            "images": [],
+            "children": [],
+            "annotations": []
+          },
+          {
+            "id": "node-mserf9cq-3ecs7",
+            "text": "TCP/IP模型",
+            "note": "",
+            "color": "violet",
+            "collapsed": false,
+            "images": [],
+            "children": [],
+            "annotations": []
+          },
+          {
+            "id": "node-mserfiqq-owxlc",
+            "text": "教学模型",
+            "note": "",
+            "color": "violet",
+            "collapsed": false,
+            "images": [],
+            "children": [
+              {
+                "id": "node-mserfo19-7guvy",
+                "text": "应用层",
+                "note": "",
+                "color": "violet",
+                "collapsed": false,
+                "images": [],
+                "children": [],
+                "annotations": []
+              },
+              {
+                "id": "node-mserg298-x2srf",
+                "text": "传输层",
+                "note": "",
+                "color": "violet",
+                "collapsed": false,
+                "images": [],
+                "children": [],
+                "annotations": []
+              },
+              {
+                "id": "node-msergwb3-25wdq",
+                "text": "网络层",
+                "note": "",
+                "color": "violet",
+                "collapsed": false,
+                "images": [],
+                "children": [],
+                "annotations": []
+              },
+              {
+                "id": "node-mserh1d4-gmd8p",
+                "text": "数据链路层",
+                "note": "",
+                "color": "violet",
+                "collapsed": false,
+                "images": [],
+                "children": [],
+                "annotations": []
+              },
+              {
+                "id": "node-mserh63j-owgfa",
+                "text": "物理层",
+                "note": "",
+                "color": "violet",
+                "collapsed": false,
+                "images": [],
+                "children": [
+                  {
+                    "id": "node-mserh9un-0qqsg",
+                    "text": "职责",
+                    "note": "",
+                    "color": "violet",
+                    "collapsed": false,
+                    "images": [],
+                    "children": [],
+                    "annotations": []
+                  },
+                  {
+                    "id": "node-mserhgeu-pjxjr",
+                    "text": "《通信基础》",
+                    "note": "",
+                    "color": "teal",
+                    "collapsed": false,
+                    "images": [],
+                    "children": [
+                      {
+                        "id": "node-mseritg6-u6gk5",
+                        "text": "信号相关",
+                        "note": "",
+                        "color": "teal",
+                        "collapsed": false,
+                        "images": [],
+                        "children": [
+                          {
+                            "id": "node-mserww4e-pa64h",
+                            "text": "概念",
+                            "note": "",
+                            "color": "teal",
+                            "collapsed": false,
+                            "images": [],
+                            "annotations": [],
+                            "children": [
+                              {
+                                "id": "node-msesr5e3-g7afy",
+                                "text": "信号",
+                                "note": "数据的载体",
+                                "color": "teal",
+                                "collapsed": false,
+                                "images": [],
+                                "annotations": [],
+                                "children": [
+                                  {
+                                    "id": "node-msest088-iae3d",
+                                    "text": "数字信号",
+                                    "note": "其值离散",
+                                    "color": "teal",
+                                    "collapsed": false,
+                                    "images": [],
+                                    "annotations": [],
+                                    "children": []
+                                  },
+                                  {
+                                    "id": "node-msestlqx-ogtu6",
+                                    "text": "模拟信号",
+                                    "note": "其值连续",
+                                    "color": "teal",
+                                    "collapsed": false,
+                                    "images": [],
+                                    "annotations": [],
+                                    "children": []
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "node-msfcsaxr-fb63j",
+                                "text": "数据",
+                                "note": "",
+                                "color": "teal",
+                                "collapsed": false,
+                                "images": [],
+                                "annotations": [],
+                                "children": []
+                              },
+                              {
+                                "id": "node-mserx4rk-rav3d",
+                                "text": "信源",
+                                "note": "信号的来源（数据的发送方）",
+                                "color": "teal",
+                                "collapsed": false,
+                                "images": [],
+                                "annotations": [],
+                                "children": []
+                              },
+                              {
+                                "id": "node-mserxf7c-l25a6",
+                                "text": "信宿",
+                                "note": "信号的归宿（数据的接收方）",
+                                "color": "teal",
+                                "collapsed": false,
+                                "images": [],
+                                "annotations": [],
+                                "children": []
+                              },
+                              {
+                                "id": "node-mserxrlq-5n9eo",
+                                "text": "信道",
+                                "note": "信号的通道",
+                                "color": "teal",
+                                "collapsed": false,
+                                "images": [],
+                                "annotations": [],
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "id": "node-mserx0j7-9r755",
+                            "text": "模型",
+                            "note": "",
+                            "color": "teal",
+                            "collapsed": false,
+                            "images": [
+                              {
+                                "id": "bd731e3f-8cea-4e8e-9cff-db6c2c95c028",
+                                "file": "e61ac03e-a510-47ec-89b6-1af9bf41d435.png",
+                                "name": "2026-08-04 23_16_20-视频播放.png",
+                                "mime": "image/png",
+                                "size": 362039,
+                                "url": "/uploads/e61ac03e-a510-47ec-89b6-1af9bf41d435.png",
+                                "createdAt": "2026-08-04T15:16:54.971Z"
+                              }
+                            ],
+                            "annotations": [],
+                            "children": []
+                          }
+                        ],
+                        "annotations": []
+                      }
+                    ],
+                    "annotations": []
+                  }
+                ],
+                "annotations": []
+              }
+            ],
+            "annotations": []
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "id": "node-mseqy7hw-nv4sa",
+        "text": "新主题",
+        "note": "",
+        "color": "violet",
+        "collapsed": false,
+        "images": [],
+        "children": [],
+        "annotations": []
+      }
+    ],
+    "annotations": []
+  },
+  "updatedAt": "2026-08-05T00:33:13.432Z",
+  "relationships": [
+    {
+      "id": "node-msfc4fan-9rrwi",
+      "sourceId": "node-msestlqx-ogtu6",
+      "targetId": "node-msest088-iae3d",
+      "topic": "模拟",
+      "description": "",
+      "type": "a-to-b",
+      "createdAt": "2026-08-05T00:14:29.996Z",
+      "updatedAt": "2026-08-05T00:14:29.996Z"
+    }
+  ]
+}

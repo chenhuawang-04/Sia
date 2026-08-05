@@ -1,0 +1,12 @@
+.git
+.github
+backups
+target
+cross-platform/target
+cross-platform/apps/client/src-tauri/gen
+cross-platform/services/sync-server/data
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.vault
+*.salt

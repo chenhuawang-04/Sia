@@ -1,0 +1,48 @@
+name: Native Builds
+on:
+  workflow_dispatch:
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Generate platform icon set
+        working-directory: cross-platform/apps/client
+        run: cargo tauri icon src-tauri/icons/branchly.svg
+      - name: Build unsigned Windows bundles
+        working-directory: cross-platform/apps/client
+        run: cargo tauri build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: branchly-windows-unsigned
+          path: cross-platform/target/release/bundle/**
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+      - name: Install Android NDK and Tauri CLI
+        run: |
+          sdkmanager "ndk;27.0.12077973"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          cargo install tauri-cli --version "^2" --locked
+      - name: Initialize and build unsigned Android APK
+        working-directory: cross-platform/apps/client
+        run: |
+          cargo tauri icon src-tauri/icons/branchly.svg
+          cargo tauri android init
+          cargo tauri android build --apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: branchly-android-unsigned
+          path: cross-platform/apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk

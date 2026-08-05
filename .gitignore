@@ -1,0 +1,12 @@
+target/
+backups/
+cross-platform/apps/client/src-tauri/gen/
+cross-platform/services/sync-server/.env
+cross-platform/services/sync-server/data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.vault
+*.salt
+*.keystore
+local.properties

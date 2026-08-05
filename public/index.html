@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f5fb">
+  <title>Branchly · 思维导图</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-pending">
+  <section class="auth-gate" id="authGate" aria-live="polite">
+    <form class="login-card" id="loginForm">
+      <div class="login-brand"><span class="brand-mark">B</span><span>Branchly</span></div>
+      <div class="login-art"><i></i><i></i><i></i><i></i></div>
+      <small>受保护的工作空间</small>
+      <h1>欢迎回来</h1>
+      <p>输入访问密码以打开你的思维导图。</p>
+      <label>访问密码<div class="password-field"><input id="passwordInput" type="password" autocomplete="current-password" required placeholder="请输入密码"><button type="button" id="togglePassword" aria-label="显示或隐藏密码">◉</button></div></label>
+      <div class="login-error hidden" id="loginError"></div>
+      <button class="login-submit" id="loginSubmit" type="submit"><span>进入工作空间</span><b>→</b></button>
+      <footer><span></span>安全会话 · 七天有效<span></span></footer>
+    </form>
+  </section>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-mark">B</span><span>Branchly</span></div>
+      <button class="new-map" id="newMapBtn"><span>＋</span> 新建导图</button>
+      <div class="side-label">我的空间</div>
+      <button class="map-item active">
+        <span class="map-icon">⌘</span><span class="map-copy"><strong id="sideTitle">计算机组成原理</strong><small>刚刚编辑</small></span><span>•••</span>
+      </button>
+      <div class="side-spacer"></div>
+      <div class="shortcut-card"><span class="spark">✦</span><strong>键盘优先</strong><p><kbd>→</kbd> 创建子节点<br><kbd>↑</kbd> <kbd>↓</kbd> 切换同级</p></div>
+      <button class="side-link" id="helpBtn">?　快捷键帮助</button>
+      <button class="side-link hidden" id="storageBtn">◫　数据与恢复</button>
+      <button class="side-link" id="logoutBtn">↪　退出工作空间</button>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <button class="icon-button mobile-only" id="menuBtn" aria-label="打开侧栏">☰</button>
+        <div class="crumb">我的空间 <span>/</span></div>
+        <input id="titleInput" class="title-input" value="计算机组成原理" aria-label="导图标题">
+        <div class="save-state" id="saveState"><i></i><span>已保存</span></div>
+        <div class="top-actions">
+          <button class="icon-button" id="searchBtn" title="搜索 (⌘K)">⌕</button>
+          <button class="button secondary" id="importBtn">导入</button>
+          <button class="button secondary" id="exportBtn">导出</button>
+          <button class="button primary" id="shareBtn">分享导图</button>
+          <div class="avatar">秋</div>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="编辑工具栏">
+        <div class="tool-group">
+          <button class="tool" id="undoBtn" title="撤销 (Ctrl+Z)">↶</button>
+          <button class="tool" id="redoBtn" title="重做 (Ctrl+Shift+Z)">↷</button>
+        </div>
+        <span class="divider"></span>
+        <div class="tool-group">
+          <button class="tool labeled" id="addChildBtn"><b>＋</b> 子节点 <kbd>→</kbd></button>
+          <button class="tool labeled" id="addSiblingBtn"><b>＋</b> 同级节点 <kbd>Enter</kbd></button>
+          <button class="tool labeled" id="editBtn">✎ 编辑</button>
+          <button class="tool labeled" id="addAnnotationBtn">注 标注</button>
+          <button class="tool labeled" id="addImageBtn">▧ 图片</button>
+          <button class="tool labeled" id="deleteBtn">⌫ 删除</button>
+        </div>
+        <span class="divider"></span>
+        <div class="tool-group structure-tools">
+          <button class="tool labeled" id="verticalSplitBtn" title="当前块保留在左侧，新块插入右侧并接管原孩子">⇥ 竖直切分</button>
+          <button class="tool labeled" id="horizontalSplitBtn" title="当前块保留在上方，创建同父的下方块">⇳ 水平切分</button>
+          <button class="tool labeled" id="reparentBtn" title="把当前块及其全部后代移动到新的父块">⌁ 重新归属</button>
+          <button class="tool labeled" id="addRelationBtn" title="从当前块连接到另一个块">↝ 添加关系</button>
+          <button class="tool labeled active" id="toggleRelationsBtn" title="显示或隐藏所有关系边">◉ 关系边</button>
+        </div>
+        <span class="divider"></span>
+        <div class="tool-group colors" aria-label="节点颜色">
+          <button data-color="violet" class="color-dot violet" title="紫色"></button>
+          <button data-color="blue" class="color-dot blue" title="蓝色"></button>
+          <button data-color="teal" class="color-dot teal" title="青色"></button>
+          <button data-color="orange" class="color-dot orange" title="橙色"></button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <button class="tool labeled" id="focusBtn">◎ 聚焦节点</button>
+        <button class="tool labeled" id="autoLayoutBtn">⌁ 自动布局</button>
+      </section>
+
+      <section class="canvas-wrap" id="canvasWrap" tabindex="0">
+        <div class="canvas-grid" id="canvasGrid"></div>
+        <div class="scene" id="scene">
+          <svg id="connections" class="relationship-layer" aria-label="块之间的关系边"></svg>
+          <div id="nodesLayer" role="tree" aria-label="思维导图块视图"></div>
+        </div>
+        <svg class="relation-draft-overlay hidden" id="relationDraftOverlay" aria-hidden="true"><path id="relationDraftPath"></path><circle id="relationDraftDot" r="5"></circle></svg>
+        <div class="empty-state hidden" id="emptyState">没有匹配的节点</div>
+        <div class="search-panel hidden" id="searchPanel">
+          <span>⌕</span><input id="searchInput" placeholder="搜索全部节点…"><kbd>Enter 定位</kbd><kbd>Esc</kbd>
+        </div>
+        <div class="reparent-banner hidden" id="reparentBanner">
+          <span class="reparent-symbol">⌁</span><div><strong id="reparentTitle">选择新的父块</strong><small>绿色块可以接收当前子树；按 Esc 取消</small></div><button id="cancelReparentBtn">取消</button>
+        </div>
+        <div class="relation-banner hidden" id="relationBanner">
+          <span class="relation-symbol">↝</span><div><strong id="relationBannerTitle">选择关系的另一个块</strong><small>可平移/缩放，或用方向键选择、Enter 确认；Esc 取消</small></div><button id="cancelRelationBtn">取消</button>
+        </div>
+        <div class="canvas-tip" id="canvasTip">在块或空白处拖动以平移视野 · 滚轮缩放 · 双击编辑</div>
+        <div class="minimap" id="minimap"><div class="mini-tree" id="miniTree"></div><div class="mini-viewport"></div></div>
+        <div class="zoom-control">
+          <button id="zoomOut">−</button><button id="zoomValue">100%</button><button id="zoomIn">＋</button><span></span><button id="fitBtn" title="适应画布">⌗</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="context-menu hidden" id="contextMenu">
+    <button data-action="edit"><span>✎</span>修改内容<kbd>F2</kbd></button>
+    <button data-action="child"><span>↳</span>添加子节点<kbd>→</kbd></button>
+    <button data-action="above"><span>↑</span>在上方添加</button>
+    <button data-action="below"><span>↓</span>在下方添加<kbd>Enter</kbd></button>
+    <button data-action="vertical-split"><span>⇥</span>竖直切分</button>
+    <button data-action="horizontal-split"><span>⇳</span>水平切分</button>
+    <button data-action="reparent"><span>⌁</span>重新归属</button>
+    <button data-action="add-relation"><span>↝</span>添加关系</button>
+    <button data-action="collapse"><span>⌄</span>折叠 / 展开</button>
+    <button data-action="annotations"><span>注</span>管理标注</button>
+    <button data-action="images"><span>▧</span>管理图片</button>
+    <hr><button data-action="delete" class="danger"><span>⌫</span>删除节点<kbd>Del</kbd></button>
+  </div>
+
+  <dialog id="editDialog" aria-labelledby="editDialogTitle">
+    <form method="dialog" id="editForm">
+      <div class="dialog-head"><div><small>编辑节点</small><h2 id="editDialogTitle">整理你的想法</h2></div><button type="button" id="closeEditDialog" class="dialog-close" aria-label="关闭编辑窗口">×</button></div>
+      <label>节点标题<input id="nodeTextInput" maxlength="80" autocomplete="off"></label>
+      <label>补充说明<textarea id="nodeNoteInput" maxlength="240" rows="4" placeholder="例如：CPU 是进行 +++运算+++ 的构件"></textarea></label>
+      <div class="syntax-guide"><span><code>+++重点+++</code> 将显示为粗体＋下划线</span><kbd>Ctrl Enter</kbd> 保存</div>
+      <div class="note-preview-wrap"><small>渲染预览</small><div class="note-preview" id="notePreview">暂无描述</div></div>
+      <div class="dialog-actions"><button type="button" id="cancelEditBtn" class="button secondary">取消</button><button type="submit" id="saveNodeBtn" class="button primary">保存修改</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="helpDialog" aria-labelledby="helpDialogTitle">
+    <div class="dialog-head"><div><small>Branchly</small><h2 id="helpDialogTitle">快捷键</h2></div><button class="dialog-close" id="closeHelpDialog" aria-label="关闭快捷键帮助">×</button></div>
+    <div class="shortcut-list">
+      <p><span>创建或进入子节点</span><kbd>→</kbd></p><p><span>返回父节点</span><kbd>←</kbd></p>
+      <p><span>切换上 / 下同级节点</span><span><kbd>↑</kbd> <kbd>↓</kbd></span></p><p><span>添加下方同级节点</span><kbd>Enter</kbd></p>
+      <p><span>编辑节点</span><kbd>F2</kbd></p><p><span>删除节点</span><kbd>Del</kbd></p>
+      <p><span>撤销 / 重做</span><span><kbd>Ctrl Z</kbd> <kbd>Ctrl ⇧ Z</kbd></span></p>
+      <p><span>描述重点语法</span><code>+++重点+++</code></p>
+      <p><span>竖直切分</span><span>右侧块接管原孩子</span></p>
+      <p><span>水平切分</span><span>新增同父下方块</span></p>
+      <p><span>重新归属</span><span>移动当前完整子树</span></p>
+      <p><span>添加关系</span><span>右键选择目标，或从 ↝ 手柄拖出</span></p>
+    </div>
+  </dialog>
+
+  <dialog id="imageDialog" class="image-dialog">
+    <div class="dialog-head image-dialog-head">
+      <div><small>节点图片</small><h2 id="imageDialogTitle">图片</h2><p id="imageDialogSubtitle"></p></div>
+      <div class="image-dialog-actions"><button class="button secondary" id="galleryUploadBtn">＋ 添加图片</button><button class="dialog-close" id="closeImageDialog">×</button></div>
+    </div>
+    <div class="image-gallery" id="imageGallery"></div>
+    <div class="gallery-empty hidden" id="galleryEmpty"><span>▧</span><strong>还没有图片</strong><p>为这个块添加参考图、截图或照片</p><button class="button primary" id="emptyUploadBtn">选择图片</button></div>
+  </dialog>
+
+  <dialog id="annotationDialog" class="annotation-dialog" aria-labelledby="annotationDialogTitle">
+    <div class="dialog-head annotation-dialog-head">
+      <div><small>知识补充</small><h2 id="annotationDialogTitle">节点标注</h2><p id="annotationDialogSubtitle"></p></div>
+      <div class="annotation-head-actions"><button class="button primary" id="newAnnotationBtn">＋ 新建标注</button><button class="dialog-close" id="closeAnnotationDialog" aria-label="关闭标注面板">×</button></div>
+    </div>
+    <form class="annotation-composer hidden" id="annotationForm">
+      <div class="annotation-composer-head"><strong id="annotationComposerTitle">新建标注</strong><span><code>+++重点+++</code> 支持重点语法</span></div>
+      <textarea id="annotationInput" maxlength="1000" rows="5" placeholder="输入补充知识、解释、例子或易错点…"></textarea>
+      <div class="annotation-preview" id="annotationPreview">标注预览</div>
+      <div class="annotation-form-footer"><small><kbd>Ctrl Enter</kbd> 保存 · <kbd>Esc</kbd> 取消编辑</small><div><button type="button" class="button secondary" id="cancelAnnotationBtn">取消</button><button type="submit" class="button primary" id="saveAnnotationBtn">保存标注</button></div></div>
+    </form>
+    <div class="annotation-list" id="annotationList"></div>
+    <div class="annotation-empty hidden" id="annotationEmpty"><span>注</span><strong>还没有标注</strong><p>把补充知识、延伸解释或易错点附在这个块上</p><button class="button primary" id="emptyAnnotationBtn">创建第一条标注</button></div>
+  </dialog>
+
+  <dialog id="relationshipDialog" class="relationship-dialog" aria-labelledby="relationshipDialogTitle">
+    <form id="relationshipForm">
+      <div class="dialog-head relationship-dialog-head">
+        <div><small id="relationshipDialogEyebrow">创建关系</small><h2 id="relationshipDialogTitle">设置关系边</h2><p>关系只表达语义，不改变父子结构。</p></div>
+        <button type="button" class="dialog-close" id="closeRelationshipDialog" aria-label="关闭关系设置">×</button>
+      </div>
+      <div class="relationship-endpoints"><div class="endpoint endpoint-a"><small>块 A</small><strong id="relationshipSourceName"></strong></div><span id="relationshipDirectionPreview">→</span><div class="endpoint endpoint-b"><small>块 B</small><strong id="relationshipTargetName"></strong></div></div>
+      <label>边的主题<input id="relationshipTopicInput" maxlength="80" autocomplete="off" placeholder="例如：依赖、对比、数据流"></label>
+      <label>边的描述<textarea id="relationshipDescriptionInput" maxlength="500" rows="4" placeholder="补充说明这两个块之间的关系（可选）"></textarea></label>
+      <fieldset class="relationship-types"><legend>边的类型</legend>
+        <label><input type="radio" name="relationshipType" value="a-to-b" checked><span><b>A → B</b><small>从块 A 指向块 B</small></span></label>
+        <label><input type="radio" name="relationshipType" value="b-to-a"><span><b>A ← B</b><small>从块 B 指向块 A</small></span></label>
+        <label><input type="radio" name="relationshipType" value="bidirectional"><span><b>A ↔ B</b><small>两个方向相互关联</small></span></label>
+        <label><input type="radio" name="relationshipType" value="undirected"><span><b>A — B</b><small>无方向的普通连线</small></span></label>
+      </fieldset>
+      <div class="relationship-form-footer"><button type="button" class="button relationship-delete hidden" id="deleteRelationshipBtn">删除关系</button><div><button type="button" class="button secondary" id="cancelRelationshipDialog">取消</button><button type="submit" class="button primary" id="saveRelationshipBtn">保存关系</button></div></div>
+    </form>
+  </dialog>
+
+  <dialog id="previewDialog" class="preview-dialog">
+    <button class="preview-close" id="closePreview">×</button>
+    <button class="preview-nav previous" id="previewPrevious">‹</button>
+    <figure><img id="previewImage" alt="图片预览"><figcaption><strong id="previewName"></strong><a id="previewDownload" download>下载原图</a></figcaption></figure>
+    <button class="preview-nav next" id="previewNext">›</button>
+  </dialog>
+
+  <dialog id="cloudDialog" class="cloud-dialog">
+    <div class="dialog-head cloud-dialog-head"><div><small>Cloud Sync</small><h2>云同步</h2><p>本地优先；断网时继续编辑，恢复网络后自动补传。</p></div><button type="button" class="dialog-close" id="closeCloudDialog">×</button></div>
+    <section id="cloudSignedOut">
+      <form id="cloudLoginForm">
+        <label>同步服务地址<input id="cloudEndpoint" type="url" required placeholder="https://sync.example.com" autocomplete="url"></label>
+        <label>账户邮箱<input id="cloudEmail" type="email" required autocomplete="username" placeholder="name@example.com"></label>
+        <label>账户密码<input id="cloudPassword" type="password" required minlength="10" autocomplete="current-password"></label>
+        <div class="cloud-message hidden" id="cloudError"></div>
+        <div class="dialog-actions"><button class="button secondary" id="cloudRegisterBtn" type="button">创建账户</button><button class="button primary" id="cloudLoginBtn" type="submit">登录并同步</button></div>
+      </form>
+    </section>
+    <section id="cloudSignedIn" class="hidden">
+      <div class="cloud-account"><span>✓</span><div><small>当前账户</small><strong id="cloudAccount"></strong><em id="cloudServer"></em></div></div>
+      <div class="cloud-stats"><div><b id="cloudPending">0</b><small>待同步操作</small></div><div><b id="cloudConflicts">0</b><small>已保留冲突</small></div><div><b id="cloudSyncState">就绪</b><small>同步状态</small></div></div>
+      <p class="cloud-note">冲突不会覆盖本机内容。应用会保存远端副本，再把当前本机版本重新部署到最新远端版本之上。</p>
+      <div class="cloud-conflict-list hidden" id="cloudConflictList"></div>
+      <div class="cloud-actions"><button class="button secondary" id="cloudLogoutBtn" type="button">退出云账户</button><button class="button primary" id="cloudSyncBtn" type="button">立即同步</button></div>
+    </section>
+  </dialog>
+
+  <dialog id="storageDialog" class="storage-dialog">
+    <div class="dialog-head"><div><small>Local First</small><h2>数据与恢复</h2></div><button type="button" class="dialog-close" id="closeStorageDialog">×</button></div>
+    <div class="storage-health"><span id="storageHealthIcon">✓</span><div><strong id="storageHealthText">正在检查本地数据库…</strong><small id="storagePath"></small></div></div>
+    <div class="storage-section-head"><div><strong>自动恢复点</strong><small>恢复前仍会保存当前版本</small></div><button class="button secondary" id="storageExportBtn" type="button">导出当前版本</button></div>
+    <div class="snapshot-list" id="snapshotList"></div>
+    <div class="snapshot-empty hidden" id="snapshotEmpty">编辑并保存后，这里会显示最近 30 个恢复点。</div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="importInput" accept="application/json" hidden>
+  <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple hidden>
+  <script src="platform.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

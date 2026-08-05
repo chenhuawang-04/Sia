@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Branchly",
+  "version": "2.0.0",
+  "identifier": "io.branchly.mindmap",
+  "build": {
+    "frontendDist": "../../../../public"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data: blob:; connect-src 'self' https: ipc: http://ipc.localhost; object-src 'none'; frame-ancestors 'none'",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/**"]
+      }
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Branchly",
+        "width": 1360,
+        "height": 860,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "useHttpsScheme": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "shortDescription": "本地优先的块视图思维导图",
+    "longDescription": "低占用、可离线、支持云同步的块视图思维导图软件。",
+    "resources": {
+      "../../../../data/uploads/": "seed-uploads/"
+    },
+    "android": {
+      "minSdkVersion": 28
+    }
+  }
+}
